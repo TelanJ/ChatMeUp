@@ -179,6 +179,8 @@ API_URL = 'https://maps.googleapis.com/maps/api/geocode/json?address='.freeze
 Bot.on :message do |message|
   access_token = ENV['WIT_ACCESS_TOKEN']
   client = Wit.new(access_token: access_token)
-  resp = client.message(message.text)
+  if message.text != nil
+    resp = client.message(message.text)
   puts "RESP from wit => #{resp.inspect}"
+  end
 end
