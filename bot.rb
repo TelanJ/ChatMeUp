@@ -180,7 +180,7 @@ Bot.on :message do |message|
   access_token = ENV['WIT_ACCESS_TOKEN']
   client = Wit.new(access_token: access_token)
   if message.text != nil
-    resp = client.message(message.text)
+    resp = client.message("Can I loan 5000?")
   puts "RESP from wit => #{resp.inspect}"
   end
 end
