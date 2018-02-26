@@ -11,116 +11,116 @@ Facebook::Messenger::Subscriptions.subscribe(access_token: ENV['ACCESS_TOKEN'])
 
 API_URL = 'https://maps.googleapis.com/maps/api/geocode/json?address='.freeze
 
-IDIOMS = {
-  not_found: 'There were no resutls. Ask me again, please',
-  ask_location: 'Enter destination',
-  unknown_command: 'Sorry, I did not recognize your command',
-  menu_greeting: 'What do you want to look up?'
-}.freeze
+# IDIOMS = {
+#   not_found: 'There were no resutls. Ask me again, please',
+#   ask_location: 'Enter destination',
+#   unknown_command: 'Sorry, I did not recognize your command',
+#   menu_greeting: 'What do you want to look up?'
+# }.freeze
 
-def process_coordinates
-  handle_api_request do |api_response, message|
-    coord = extract_coordinates(api_response)
-    message.reply(text: "Latitude: #{coord['lat']} / Longitude: #{coord['lng']}")
-  end
-end
+# def process_coordinates
+#   handle_api_request do |api_response, message|
+#     coord = extract_coordinates(api_response)
+#     message.reply(text: "Latitude: #{coord['lat']} / Longitude: #{coord['lng']}")
+#   end
+# end
 
-def show_full_address
-  handle_api_request do |api_response, message|
-    full_address = extract_full_address(api_response)
-    message.reply(text: full_address)
-  end
-end
+# def show_full_address
+#   handle_api_request do |api_response, message|
+#     full_address = extract_full_address(api_response)
+#     message.reply(text: full_address)
+#   end
+# end
 
-def handle_api_request
-  Bot.on :message do |message|
-    parsed_response = get_parsed_response(API_URL, message.text)
-    message.typing_on # let user know we're doing something
-    if parsed_response
-      yield(parsed_response, message)
-      wait_for_any_input
-    else
-      message.reply(text: IDIOMS[:not_found])
-      # meta-programming voodoo to call the callee
-      callee = Proc.new { caller_locations.first.label }
-      callee.call
-    end
-  end
-end
+# def handle_api_request
+#   Bot.on :message do |message|
+#     parsed_response = get_parsed_response(API_URL, message.text)
+#     message.typing_on # let user know we're doing something
+#     if parsed_response
+#       yield(parsed_response, message)
+#       wait_for_any_input
+#     else
+#       message.reply(text: IDIOMS[:not_found])
+#       # meta-programming voodoo to call the callee
+#       callee = Proc.new { caller_locations.first.label }
+#       callee.call
+#     end
+#   end
+# end
 
-# Talk to API
-def get_parsed_response(url, query)
-  response = HTTParty.get(url + query)
-  parsed = JSON.parse(response.body)
-  parsed['status'] != 'ZERO_RESULTS' ? parsed : nil
-end
+# # Talk to API
+# def get_parsed_response(url, query)
+#   response = HTTParty.get(url + query)
+#   parsed = JSON.parse(response.body)
+#   parsed['status'] != 'ZERO_RESULTS' ? parsed : nil
+# end
 
-def extract_coordinates(parsed)
-  parsed['results'].first['geometry']['location']
-end
-
-
-def extract_full_address(parsed)
-  parsed['results'].first['formatted_address']
-end
-
-MENU_REPLIES = [
-  {
-    content_type: 'text',
-    title: 'Coordinates',
-    payload: 'COORDINATES'
-  },
-  {
-    content_type: 'text',
-    title: 'Full address',
-    payload: 'FULL_ADDRESS'
-  }
-]
-
-def wait_for_command
-  Bot.on :message do |message|
-    puts "Received '#{message.inspect}' from #{message.sender}" # debug only
-    sender_id = message.sender['id']
-    case message.text
-    when /coord/i, /gps/i
-      message.reply(text: IDIOMS[:ask_location])
-      show_coordinates(sender_id)
-    when /full ad/i # we got the user even the address is misspelled
-      message.reply(text: IDIOMS[:ask_location])
-      show_full_address(sender_id)
-    else
-      message.reply(text: IDIOMS[:unknown_command])
-      show_replies_menu(sender_id, MENU_REPLIES)
-    end
-  end
-end
+# def extract_coordinates(parsed)
+#   parsed['results'].first['geometry']['location']
+# end
 
 
-def say(recipient_id, text, quick_replies = nil)
-  message_options = {
-  recipient: { id: recipient_id },
-  message: { text: text }
-  }
-  if quick_replies
-    message_options[:message][:quick_replies] = quick_replies
-  end
-  Bot.deliver(message_options, access_token: ENV['ACCESS_TOKEN'])
-end
+# def extract_full_address(parsed)
+#   parsed['results'].first['formatted_address']
+# end
 
-def show_replies_menu(id, quick_replies)
-  say(id, IDIOMS[:menu_greeting], quick_replies)
-  wait_for_command
-end
+# MENU_REPLIES = [
+#   {
+#     content_type: 'text',
+#     title: 'Coordinates',
+#     payload: 'COORDINATES'
+#   },
+#   {
+#     content_type: 'text',
+#     title: 'Full address',
+#     payload: 'FULL_ADDRESS'
+#   }
+# ]
 
-def wait_for_any_input
-  Bot.on :message do |message|
-    access_token = ENV['WIT_ACCESS_TOKEN']
-    client = Wit.new(access_token: access_token)
-    resp = client.message(message.text)
-    puts "RESP from wit => #{resp.inspect}"
-    # show_replies_menu(message.sender['id'], MENU_REPLIES)
-  end
-end
+# def wait_for_command
+#   Bot.on :message do |message|
+#     puts "Received '#{message.inspect}' from #{message.sender}" # debug only
+#     sender_id = message.sender['id']
+#     case message.text
+#     when /coord/i, /gps/i
+#       message.reply(text: IDIOMS[:ask_location])
+#       show_coordinates(sender_id)
+#     when /full ad/i # we got the user even the address is misspelled
+#       message.reply(text: IDIOMS[:ask_location])
+#       show_full_address(sender_id)
+#     else
+#       message.reply(text: IDIOMS[:unknown_command])
+#       show_replies_menu(sender_id, MENU_REPLIES)
+#     end
+#   end
+# end
+
+
+# def say(recipient_id, text, quick_replies = nil)
+#   message_options = {
+#   recipient: { id: recipient_id },
+#   message: { text: text }
+#   }
+#   if quick_replies
+#     message_options[:message][:quick_replies] = quick_replies
+#   end
+#   Bot.deliver(message_options, access_token: ENV['ACCESS_TOKEN'])
+# end
+
+# def show_replies_menu(id, quick_replies)
+#   say(id, IDIOMS[:menu_greeting], quick_replies)
+#   wait_for_command
+# end
+
+# def wait_for_any_input
+#   Bot.on :message do |message|
+    # access_token = ENV['WIT_ACCESS_TOKEN']
+    # client = Wit.new(access_token: access_token)
+    # resp = client.message(message.text)
+    # puts "RESP from wit => #{resp.inspect}"
+#     # show_replies_menu(message.sender['id'], MENU_REPLIES)
+#   end
+# end
 
 # # Set call to action button when user is about to address bot
 # # for the first time.
@@ -160,19 +160,25 @@ end
 #   },
 # }, access_token: ENV['ACCESS_TOKEN'])
 
-Bot.on :postback do |postback|
-  sender_id = postback.sender['id']
-  case postback.payload
-  when 'START' then show_replies_menu(postback.sender['id'], MENU_REPLIES)
-  when 'COORDINATES'
-    say(sender_id, IDIOMS[:ask_location])
-    show_coordinates(sender_id)
-  when 'FULL_ADDRESS'
-    say(sender_id, IDIOMS[:ask_location])
-    show_full_address(sender_id)
-  end
-end
+# Bot.on :postback do |postback|
+#   sender_id = postback.sender['id']
+#   case postback.payload
+#   when 'START' then show_replies_menu(postback.sender['id'], MENU_REPLIES)
+#   when 'COORDINATES'
+#     say(sender_id, IDIOMS[:ask_location])
+#     show_coordinates(sender_id)
+#   when 'FULL_ADDRESS'
+#     say(sender_id, IDIOMS[:ask_location])
+#     show_full_address(sender_id)
+#   end
+# end
 
 # launch the loop
 # wait_for_user_input
-wait_for_any_input
+# wait_for_any_input
+Bot.on :message do |message|
+  access_token = ENV['WIT_ACCESS_TOKEN']
+  client = Wit.new(access_token: access_token)
+  resp = client.message(message.text)
+  puts "RESP from wit => #{resp.inspect}"
+end
