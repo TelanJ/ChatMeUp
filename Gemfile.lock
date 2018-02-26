@@ -17,6 +17,7 @@ GEM
       rack-protection (= 2.0.1)
       tilt (~> 2.0)
     tilt (2.0.8)
+    wit (6.0.0)
 
 PLATFORMS
   ruby
@@ -25,6 +26,7 @@ DEPENDENCIES
   facebook-messenger
   httparty
   sinatra
+  wit
 
 BUNDLED WITH
    1.16.1

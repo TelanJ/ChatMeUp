@@ -1,6 +1,7 @@
 require 'facebook/messenger'
 require 'httparty'
 require 'json'
+require 'wit'
 include Facebook::Messenger
 # require 'dotenv/load'
 # NOTE: ENV variables should be set directly in terminal for localhost
@@ -16,19 +17,6 @@ IDIOMS = {
   unknown_command: 'Sorry, I did not recognize your command',
   menu_greeting: 'What do you want to look up?'
 }.freeze
-
-def wait_for_user_input
-  Bot.on :message do |message|
-    case message.text
-    when /coord/i, /gps/i # we use regexp to match parts of strings
-      message.reply(text: IDIOMS[:ask_location])
-      process_coordinates
-    when /full ad/i # we got the user even if he misspells address
-      message.reply(text: IDIOMS[:ask_location])
-      show_full_address
-    end
-  end
-end
 
 def process_coordinates
   handle_api_request do |api_response, message|
@@ -126,7 +114,11 @@ end
 
 def wait_for_any_input
   Bot.on :message do |message|
-    show_replies_menu(message.sender['id'], MENU_REPLIES)
+    access_token = ENV['WIT_ACCESS_TOKEN']
+    client = Wit.new(access_token: access_token)
+    resp = client.message(message.text)
+    puts "RESP from wit => #{resp.inspect}"
+    # show_replies_menu(message.sender['id'], MENU_REPLIES)
   end
 end
 
